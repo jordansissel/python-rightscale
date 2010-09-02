@@ -16,7 +16,7 @@ from xml.etree.ElementTree import XML, Element, SubElement
 
 # third party
 import httplib2
-from netifaces import interfaces, ifaddresses, AF_INET
+import netifaces
 
 #httplib2.debuglevel=1
 
@@ -27,15 +27,18 @@ DISABLE_COOKIES = True
 class RightScale(object):
   """ General interface to RightScale. 
 
-      Required:
-        account
-        AND (
-          user, password
-          OR
-          cookie
-        )
+      We will support cookies in the future once RightScale's treatment of
+      cookies is more well documented and reliable.
   """
+
   def __init__(self, account=None, user=None, password=None, cookie=None):
+    """ Configures a new RightScale object. 
+
+        Required arguments:
+          account user, password
+
+        Cookies are not currently supported.
+    """
     self._http = httplib2.Http()
     self._is_authenticated = False
     self._headers = {
@@ -65,19 +68,19 @@ class RightScale(object):
       self.password = None
   # def __init__
 
-  """ Make a request through the rightscale api. 
-      This is generally only used internally but is made available
-      public in case you need it. 
-      
-      Arguments:
-      path - partial or full url for the rightscale api. If the url is partial,
-        it is assumed to be relative to https://my.rightscale.com/api/acct/<account>/
-      parameters - dict. parameters to pass on the url. 
-      method - http method. Defaults to GET
-      body - request body, also urlencoded like 'parameters' is. If specified, this
-        will cause the Content-Type to get set to application/x-www-form-urlencoded.
-      """
   def request(self, path, parameters=None, method="GET", body=None):
+    """ Make a request through the rightscale api. 
+        This is generally only used internally but is made available
+        public in case you need it. 
+        
+        Arguments:
+        path - partial or full url for the rightscale api. If the url is partial,
+          it is assumed to be relative to https://my.rightscale.com/api/acct/<account>/
+        parameters - dict. parameters to pass on the url. 
+        method - http method. Defaults to GET
+        body - request body, also urlencoded like 'parameters' is. If specified, this
+          will cause the Content-Type to get set to application/x-www-form-urlencoded.
+        """
     if path.startswith("https://"):
       url = path
     else:
@@ -99,14 +102,14 @@ class RightScale(object):
         method=method, body=body)
     return response, content
 
-  """ Ensure we are authenticated """
   def ensure_authenticated(self):
+    """ Ensure we are authenticated. """
     if not self._is_authenticated:
       self.authenticate()
   # def ensure_authenticated
 
-  """ Authenticate with RightScale's API """
   def authenticate(self):
+    """ Authenticate with RightScale's API """
     if DISABLE_COOKIES:
       return
     if self.user is None or self.password is None:
@@ -119,43 +122,43 @@ class RightScale(object):
     self._is_authenticated = True
   # def authenticate
 
-  """ Query deployments in RightScale.
-      http://support.rightscale.com/15-References/RightScale_API_Reference_Guide/02-Management/01-Deployments
-
-      Returns a Deployments object.  """
   @property
   def deployments(self):
+    """ Query deployments in RightScale.
+        http://support.rightscale.com/15-References/RightScale_API_Reference_Guide/02-Management/01-Deployments
+
+        Returns a Deployments object.  """
     self.ensure_authenticated()
     response, content = self.request("deployments.xml")
     deployments = Deployments(content, self)
     return deployments
   # def deployments
 
-  """ Query servers in RightScale.
-      http://support.rightscale.com/15-References/RightScale_API_Reference_Guide/02-Management/02-Servers
-
-      Returns a Servers object """
   @property
   def servers(self):
+    """ Query servers in RightScale.
+        http://support.rightscale.com/15-References/RightScale_API_Reference_Guide/02-Management/02-Servers
+
+        Returns a Servers object """
     self.ensure_authenticated()
     response, content = self.request("servers.xml")
     return Servers(content, self)
   # def servers
 
-  """ Try to find myself (this server) in RightScale.
-      It will query for any server matching any IP on this host.
-
-      Returns a Server object if found, None otherwise. """
   def whoami(self):
+    """ Try to find myself (this server) in RightScale.
+        It will query for any server matching any IP on this host.
+
+        Returns a Server object if found, None otherwise. """
     # This isn't likely the most optimal way to find the server, but
     # it's not bad either.  We could query by aws_id which would only require 1
     # query, not 2n where n is the number of addresses on the system.
     self.ensure_authenticated()
-    for interface in interfaces():
-      addresses = ifaddresses(interface)
-      if AF_INET not in addresses:
+    for interface in netifaces.interfaces():
+      addresses = netifaces.ifaddresses(interface)
+      if netifaces.AF_INET not in addresses:
         continue
-      for address in addresses[AF_INET]:
+      for address in addresses[netifaces.AF_INET]:
         for type in ("ip_address", "private_ip_address"):
           params = { "filter": "%s=%s" % (type, address["addr"]) }
           response, content = self.request("servers.xml", parameters=params)
@@ -170,17 +173,17 @@ class RightScale(object):
     return None
   # def whoami
 
-  """ Save tags for a given resource. This is normally an internal method.
-
-      This method will remove all tags not specified in the tags argument.
-
-      If you want to save tags for a Server, for example, modify the tags
-      for that server then invoke Server.save()
-
-      Arguments:
-      resource - the resource object to modify (Server, etc)
-      tags - array of tags to save """
   def save_tags(self, resource, tags):
+    """ Save tags for a given resource. This is normally an internal method.
+
+        This method will remove all tags not specified in the tags argument.
+
+        If you want to save tags for a Server, for example, modify the tags
+        for that server then invoke Server.save()
+
+        Arguments:
+        resource - the resource object to modify (Server, etc)
+        tags - array of tags to save """
     oldtags = Tags(rsapi=self)
     for url in [resource.href, resource.current_instance_href]:
       oldtags.for_resource(url)
@@ -200,8 +203,13 @@ class RightScale(object):
     # for url in ...
   # def save_tags
 
-  # TODO(sissel): add keyword arguments for things to search by.
   def search(self, filterstring):
+    """ Search for servers by a filter string. 
+        See http://support.rightscale.com/15-References/RightScale_API_Reference_Guide/02-Management/02-Servers
+    
+        This method will improve in usability in the future.
+        """
+    # TODO(sissel): add keyword arguments for things to search by.
     self.ensure_authenticated()
     params = { "filter": filterstring }
     response, content = self.request("servers.xml", parameters=params)
@@ -212,6 +220,14 @@ class RightScale(object):
   # def search
 
   def search_by_tags(self, tags_list, match_all=False):
+    """ Search for servers by tags
+    
+        Arguments:
+          tags_list - list of strings that are tags to search for
+          match_all - if true, require all tags to match
+        Returns:
+          Servers object
+        """
     self.ensure_authenticated()
     params = {
       "resource_type": "server",
@@ -231,20 +247,3 @@ class RightScale(object):
       return None
   # def cookie
 # class RightScale
-
-if __name__ == "__main__":
-  rsapi = RightScale(20184, "jordan@loggly.com", "4lvHoJQx")
-  #deployments = rsapi.deployments()
-  #server = [s for s in deployments.deployments["Default"].servers if s.nickname == "jordan-test"][0]
-  server = rsapi.whoami()
-  print "I am '%s'" % server
-  print "Tags: %s" % (", ".join([str(t) for t in server.tags]))
-  print "IP Addr (public): %s" % (server.settings.ip_address)
-  print "IP Addr (private): %s" % (server.settings.private_ip_address)
-  #server.tags = []
-  #server.tags.append("foo:bar=baz")
-  #response, content = rsapi.request("%s/settings" % server.href)
-  #print content
-  #print server.current_instance_href
-  #server.save()
-  
