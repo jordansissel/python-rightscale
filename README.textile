@@ -1,0 +1,26 @@
+h1. Python RightScale API
+
+This project aims to give you a more sane interface to RightScale than would
+hacking at the REST api yourself.
+
+h2. Installing
+
+Releases of this can be found on Python PI: http://pypi.python.org/pypi/rightscale/
+
+h2. Examples
+
+ from rightscale import RightScale
+ rsapi = RightScale(account_number, username, password)
+
+ # Print this server name according to RightScale
+ print rsapi.whoami().nickname
+
+ # Change my server name in RightScale
+ server = rsapi.whoami()
+ server.nickname = "New server name"
+ server.save()
+
+ # How many servers do we have?
+ print len(rsapi.servers)
+
+
