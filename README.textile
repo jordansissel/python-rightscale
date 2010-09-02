@@ -9,18 +9,24 @@ Releases of this can be found on Python PI: http://pypi.python.org/pypi/rightsca
 
 h2. Examples
 
- from rightscale import RightScale
- rsapi = RightScale(account_number, username, password)
+<code><pre>
+from rightscale import RightScale
+rsapi = RightScale(account_number, username, password)
 
- # Print this server name according to RightScale
- print rsapi.whoami().nickname
+# Find 'me' in RightScale.
+myself = rsapi.whoami()
 
- # Change my server name in RightScale
- server = rsapi.whoami()
- server.nickname = "New server name"
- server.save()
+# What does RightScale call me? (The server name in the UI)
+print myself.nickname
 
- # How many servers do we have?
- print len(rsapi.servers)
+# Change my server name in RightScale
+myself.nickname = "New server name"
+myself.save()
 
+# What tags do I have?
+print myself.tags
+
+# How many servers do we have?
+print len(rsapi.servers)
+</pre></code>
 
