@@ -1,8 +1,8 @@
 from distutils.core import setup
 
 setup(name="rightscale",
-      version="0.300",
-      description="Object-oriented library for RightScale's API. Not affiliated with RightScale.",
+      version="0.301",
+      description="Object-oriented library for RightScale's API.",
       author="Jordan Sissel",
       author_email="jordan@loggly.com",
       url="none-yet",
