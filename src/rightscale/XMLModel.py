@@ -1,10 +1,27 @@
 import xml.etree.ElementTree as ElementTree
 from xml.etree.ElementTree import XML, Element, SubElement
+from xml.parsers.expat import ExpatError
 
 # TODO(sissel): Refactor
 import xml.etree.ElementTree as ElementTree
 XMLCLASS = ElementTree.XML("<a />").__class__
 
+class InvalidResponse(Exception):
+  def __init__(self, response, content, exception):
+    self.response = response
+    self.content = content
+    self.exception = exception
+
+    self.message = "\n".join([
+      "Original exception: %s" % (self.exception),
+      "Response: %s" % response,
+      "Content: %s" % content,
+    ])
+  # def __init__
+
+  def __str__(self):
+    return self.message
+  # def __str__
 class XMLModel(object):
   # ElementTree uses hidden classes for the nodes, so let's get that class.
 
@@ -33,9 +50,15 @@ class XMLModel(object):
         # we can't 'return' from __init__ so we'd need to move to the
         # factory pattern to get this done :(
         self.cache[cachekey] = (response, content)
-        self.from_xml_string(content)
-      else:
-        self.from_xml_string(data)
+        try:
+          self.from_xml_string(content)
+        except ExpatError, e:
+          raise InvalidResponse(response, content, e)
+      else: # else, data is probably xml.
+        try:
+          self.from_xml_string(data)
+        except ExpatError, e:
+          raise InvalidResponse(None, data, e)
     # ElementTree uses hidden classes, so we can't use isinstance, try
     # duck typing-ish instead...
     elif isinstance(data, XMLCLASS):
@@ -84,6 +107,10 @@ class XMLModel(object):
   def taint(self, what):
     self.tainted[what] = True
   # def taint
+
+  def untaint(self, what):
+    del self.tainted[what]
+  # def untaint
 
 # class XMLModel
 

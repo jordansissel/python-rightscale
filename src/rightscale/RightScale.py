@@ -19,19 +19,50 @@ import httplib2
 from netifaces import interfaces, ifaddresses, AF_INET
 
 #httplib2.debuglevel=1
-#from xml.etree.ElementTree import XML, ElementTree, Element, SubElement
+
+# TODO(sissel): RightScale cookies expire at an unknown interval so we won't use
+# cookies until we know they work. Bug filed with RightScale.
+DISABLE_COOKIES = True
 
 class RightScale(object):
-  """ General interface to RightScale. """
-  def __init__(self, account, user, password):
+  """ General interface to RightScale. 
+
+      Required:
+        account
+        AND (
+          user, password
+          OR
+          cookie
+        )
+  """
+  def __init__(self, account=None, user=None, password=None, cookie=None):
     self._http = httplib2.Http()
     self._is_authenticated = False
     self._headers = {
       "X-API-VERSION": "1.0"
     }
+
+    assert account is not None, "No account provided"
+    if DISABLE_COOKIES:
+      assert cookie is None, "Cookies are not supported. We are waiting on RightScale to clarify and fix the login api before cookies will work again."
+
     self.account = account
-    self.user = user
-    self.password = password
+
+    # Validate
+    if cookie is None:
+      assert not (user is None or password is None), "Requires user and password OR cookie"
+      self.user = user
+      self.password = password
+      if DISABLE_COOKIES:
+        self._is_authenticated = True
+        auth_string = base64.encodestring("%s:%s" % (self.user, self.password))
+        self._headers["Authorization"] = "Basic %s" % auth_string
+    else:
+      assert user is None and password is None, "Requires user and password OR cookie"
+      self._headers["Cookie"] = cookie
+      self._is_authenticated = True
+      self.user = None
+      self.password = None
   # def __init__
 
   """ Make a request through the rightscale api. 
@@ -63,6 +94,7 @@ class RightScale(object):
       if "Content-Type" in self._headers:
         del self._headers["Content-Type"]
     #print "Request: %s %s" % (method, url)
+    #print self._headers
     response, content = self._http.request(url, headers=self._headers,
         method=method, body=body)
     return response, content
@@ -75,6 +107,10 @@ class RightScale(object):
 
   """ Authenticate with RightScale's API """
   def authenticate(self):
+    if DISABLE_COOKIES:
+      return
+    if self.user is None or self.password is None:
+      raise Exception("No user and password known. Cannot authenticate.")
     auth_string = base64.encodestring("%s:%s" % (self.user, self.password))
     self._headers["Authorization"] = "Basic %s" % auth_string
     response, content = self.request("login")
@@ -116,7 +152,10 @@ class RightScale(object):
     # query, not 2n where n is the number of addresses on the system.
     self.ensure_authenticated()
     for interface in interfaces():
-      for address in ifaddresses(interface)[AF_INET]:
+      addresses = ifaddresses(interface)
+      if AF_INET not in addresses:
+        continue
+      for address in addresses[AF_INET]:
         for type in ("ip_address", "private_ip_address"):
           params = { "filter": "%s=%s" % (type, address["addr"]) }
           response, content = self.request("servers.xml", parameters=params)
@@ -183,6 +222,14 @@ class RightScale(object):
     servers = Servers(content, self)
     return servers
   # def search
+
+  @property
+  def cookie(self):
+    if "Cookie" in self._headers:
+      return self._headers["Cookie"]
+    else:
+      return None
+  # def cookie
 # class RightScale
 
 if __name__ == "__main__":

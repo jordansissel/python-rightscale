@@ -97,6 +97,7 @@ class Server(XMLModel):
   @nickname.setter
   @ElementTreeValueOK
   def nickname(self, value):
+    self.taint("nickname")
     self._nickname = value
 
   @property
@@ -126,8 +127,26 @@ class Server(XMLModel):
   # def tags
 
   def save(self):
-    if self.tainted["tags"]:
+    if "tags" in self.tainted:
       self.rsapi.save_tags(self, self.tags)
+      self.untaint("tags")
+
+    if len(self.tainted) > 0:
+      #print "Want to save: %s" % (",".join(self.tainted.keys()))
+      params = { }
+      if "nickname" in self.tainted:
+        params["server[nickname]"] = self.nickname
+        self.untaint("nickname")
+      # add other features here...
+
+      response, content = self.rsapi.request(self.href, params, method="PUT")
+      if response["status"] != "204":
+        raise InvalidResponse("Error while updating server %s: (code %s) %s" 
+            % (self.href, response["status"], content))
+      else:
+        assert len(content) == 0, "RightScale API docs claim content from a server update request will be empty"
+      # for url in ...
+    # if len(self.tainted) > 0
   # def save
 
   ELEMENTS = {
