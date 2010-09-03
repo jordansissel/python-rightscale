@@ -31,6 +31,7 @@ class Server(XMLModel):
 
   @property
   def href(self):
+    """ The href for this server """
     return self._href
 
   @href.setter
@@ -40,6 +41,9 @@ class Server(XMLModel):
 
   @property
   def settings(self):
+    """ The settings for this server, returns a ServerSettings object
+        See also: 'sub-resources' on this API reference:
+          http://support.rightscale.com/15-References/RightScale_API_Reference_Guide/02-Management/02-Servers"""
     if self._settings is None:
       self._settings = ServerSettings("%s/settings" % self._href, self.rsapi)
     return self._settings
@@ -51,7 +55,7 @@ class Server(XMLModel):
 
   @property
   def server_template(self):
-    # TODO(sissel): Do lazy loading.
+    """ The ServerTemplate for this server. """
     if self._server_template is None:
       self.get_server_template
     return self._server_template
@@ -68,6 +72,7 @@ class Server(XMLModel):
 
   @property
   def current_instance_href(self):
+    """ The current instance href. """
     return self._current_instance_href
 
   @current_instance_href.setter
@@ -77,6 +82,7 @@ class Server(XMLModel):
 
   @property
   def deployment_href(self):
+    """ The deployment href """
     return self._deployment_href
 
   @deployment_href.setter
@@ -86,12 +92,14 @@ class Server(XMLModel):
 
   @property
   def deployment(self):
+    """ The Deployment object for this server """
     assert self._deployment_href
     from Deployment import Deployment
     return Deployment(self._deployment_href, self.rsapi)
 
   @property
   def nickname(self):
+    """ The server nickname according to RightScale. Displayed in the UI. """
     return self._nickname
 
   @nickname.setter
@@ -102,6 +110,7 @@ class Server(XMLModel):
 
   @property
   def tags(self):
+    """ The tags for this server. """
     if not self._tags:
       self._tags = Tags(rsapi=self.rsapi)
       # Use current_instance_href if it is present, otherwise
@@ -127,6 +136,15 @@ class Server(XMLModel):
   # def tags
 
   def save(self):
+    """ Save any modifications made to this Server.
+
+        Can save:
+          - tags
+          - nickname
+
+        Saving tags will affect the current instance as well as the 'next'
+        instance.
+        """
     if "tags" in self.tainted:
       self.rsapi.save_tags(self, self.tags)
       self.untaint("tags")
