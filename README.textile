@@ -3,6 +3,13 @@ h1. Python RightScale API
 This project aims to give you a more sane interface to RightScale than would
 hacking at the REST api yourself.
 
+h2. Current State
+
+This project is a work in progress. If you want features added, file a bug or
+send me a patch and it'll get in. If there's a bug, let me know.
+
+We are using it in production at Loggly.com.
+
 h2. Installing
 
 Releases of this can be found on Python PI: http://pypi.python.org/pypi/rightscale/
