@@ -14,6 +14,12 @@ h2. Installing
 
 Releases of this can be found on Python PI: http://pypi.python.org/pypi/rightscale/
 
+h2. Contributing
+
+I accept all manner of communcation and patches. You are welcome to fork, file
+bugs on github (http://github.com/jordansissel/python-rightscale/issues) or
+email me at jls@semicomplete.com.
+
 h2. Examples
 
 <pre>
@@ -37,3 +43,7 @@ print myself.tags
 print len(rsapi.servers)
 </pre>
 
+h2. Author
+
+This library was written by Jordan Sissel and is made open source by Loggly,
+Inc.
