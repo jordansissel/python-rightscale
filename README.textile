@@ -10,6 +10,12 @@ send me a patch and it'll get in. If there's a bug, let me know.
 
 We are using it in production at Loggly.com.
 
+At present, I have stopped putting effort into this project due to
+difficulties in working with RightScale's API. The API is lacking in features
+and has many places where documentation does not align with reality. I file
+requests with RightScale as I find new problems, but I wont likely be working
+on this project until more of the issues are resolved.
+
 h2. Installing
 
 Releases of this can be found on Python PI: http://pypi.python.org/pypi/rightscale/
