@@ -100,6 +100,7 @@ class RightScale(object):
     #print self._headers
     response, content = self._http.request(url, headers=self._headers,
         method=method, body=body)
+    #print "Response: %s" % (content)
     return response, content
 
   def ensure_authenticated(self):
