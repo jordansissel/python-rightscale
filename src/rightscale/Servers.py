@@ -14,8 +14,7 @@ class Servers(XMLModel):
   # def __len__
 
   def __getitem__(self, index):
-    #return self.servers.values()[index]
-    return [x for x in self.servers if x.nickkname == index]
+    return self.servers[index]
   # def __getitem__
 
   def __iter__(self):

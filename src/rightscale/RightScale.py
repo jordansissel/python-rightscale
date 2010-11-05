@@ -214,8 +214,8 @@ class RightScale(object):
     self.ensure_authenticated()
     params = { "filter": filterstring }
     response, content = self.request("servers.xml", parameters=params)
-    print response
-    print content
+    #print response
+    #print content
     servers = Servers(content, self)
     return servers
   # def search
