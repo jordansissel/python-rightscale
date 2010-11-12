@@ -53,11 +53,24 @@ class ServerSettings(XMLModel):
   def private_dns_name(self, value):
     self._private_dns_name = value
 
+  @property
+  def aws_id(self):
+    try:
+      return self._aws_id
+    except:
+      return None
+
+  @aws_id.setter
+  @ElementTreeValueOK
+  def aws_id(self, value):
+    self._aws_id = value
+
   ELEMENTS = {
     "dns-name": dns_name,
     "private-dns-name": private_dns_name,
     "private-ip-address": private_ip_address,
     "ip-address": ip_address,
+    "aws-id": aws_id,
   }
 # class ServerSettings
 
