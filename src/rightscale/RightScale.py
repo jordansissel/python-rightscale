@@ -96,11 +96,12 @@ class RightScale(object):
       self._headers["Content-Length"] = "0"
       if "Content-Type" in self._headers:
         del self._headers["Content-Type"]
-    #print "Request: %s %s" % (method, url)
-    #print self._headers
     response, content = self._http.request(url, headers=self._headers,
         method=method, body=body)
-    #print "Response: %s" % (content)
+    print "Request: %s %s" % (method, url)
+    print "Headers: %r" % self._headers
+    print "Response: %s" % (response)
+    print "Content: %s" % (content)
     return response, content
 
   def ensure_authenticated(self):
@@ -214,8 +215,8 @@ class RightScale(object):
     self.ensure_authenticated()
     params = { "filter": filterstring }
     response, content = self.request("servers.xml", parameters=params)
-    #print response
-    #print content
+    print response
+    print content
     servers = Servers(content, self)
     return servers
   # def search
