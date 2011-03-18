@@ -96,12 +96,11 @@ class RightScale(object):
       self._headers["Content-Length"] = "0"
       if "Content-Type" in self._headers:
         del self._headers["Content-Type"]
+    print "Request: %s %s" % (method, url)
+    print self._headers
     response, content = self._http.request(url, headers=self._headers,
         method=method, body=body)
-    print "Request: %s %s" % (method, url)
-    print "Headers: %r" % self._headers
-    print "Response: %s" % (response)
-    print "Content: %s" % (content)
+    print "Response: %s" % (content)
     return response, content
 
   def ensure_authenticated(self):
