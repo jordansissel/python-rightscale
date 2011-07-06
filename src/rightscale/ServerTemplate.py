@@ -14,7 +14,7 @@ class ServerTemplate(XMLModel):
   def tags(self):
     if self._tags is None:
       self._tags = Tags(rsapi=self.rsapi)
-      print "Looking up %s" % self.href
+      #print "Looking up %s" % self.href
       self._tags.for_resource(self.href)
     return self._tags
 

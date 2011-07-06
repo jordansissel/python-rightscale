@@ -125,7 +125,7 @@ class Server(XMLModel):
   @tags.setter
   def tags(self, value):
     self.taint("tags")
-    print "Setting tags for %s to %s" % (self, value)
+    #print "Setting tags for %s to %s" % (self, value)
     if isinstance(value, XMLCLASS) and value.tag == "tags":
       self._tags = list()
       for element in value:
