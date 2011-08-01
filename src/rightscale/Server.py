@@ -4,6 +4,7 @@ from Tag import Tag
 from Tags import Tags
 from ServerSettings import ServerSettings
 from ServerTemplate import ServerTemplate
+from Status import Status
 
 # TODO(sissel): Refactor
 import xml.etree.ElementTree as ElementTree
@@ -134,6 +135,14 @@ class Server(XMLModel):
     else:
       self._tags = value
   # def tags
+
+  def run_script(self, script_id):
+    """ Runs script on this Server. """
+    href = self.href + "/run_script"
+    params = {'right_script': script_id}
+    response, content = self.rsapi.request(href, params, method="POST")
+    return Status(response.get('location'), self.rsapi)
+
 
   def save(self):
     """ Save any modifications made to this Server.
