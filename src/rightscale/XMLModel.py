@@ -29,7 +29,7 @@ class XMLModel(object):
 
   cache = dict()
 
-  def __init__(self, data=None, rsapi=None):
+  def __init__(self, data=None, rsapi=None, use_cache=True):
     self.rsapi = rsapi
     self.tainted = dict()
 
@@ -37,11 +37,12 @@ class XMLModel(object):
     self._init_data = {
         "data": data,
         "rsapi": rsapi,
+        "use_cache": False,
     }
     if isinstance(data, str):
       if data.startswith("https://"):
         cachekey = data
-        if cachekey in self.cache:
+        if use_cache and cachekey in self.cache:
           response, content =  self.cache[cachekey]
         else:
           response, content = self.rsapi.request(data)
@@ -49,7 +50,8 @@ class XMLModel(object):
         # Cache results. It'd be cool to cache objects, but
         # we can't 'return' from __init__ so we'd need to move to the
         # factory pattern to get this done :(
-        self.cache[cachekey] = (response, content)
+        if use_cache:
+          self.cache[cachekey] = (response, content)
         try:
           self.from_xml_string(content)
         except ExpatError, e:
@@ -77,7 +79,7 @@ class XMLModel(object):
       then it will be fetched again and this object will be updated with the
       result.  """
   def refresh(self):
-    super(Servers, self).__init__(**self._init_data)
+    self.__init__(**self._init_data)
   # def refresh
 
   def from_xml_string(self, string):
