@@ -16,7 +16,6 @@ from xml.etree.ElementTree import XML, Element, SubElement
 
 # third party
 import httplib2
-import netifaces
 
 #httplib2.debuglevel=1
 
@@ -154,6 +153,7 @@ class RightScale(object):
     # This isn't likely the most optimal way to find the server, but
     # it's not bad either.  We could query by aws_id which would only require 1
     # query, not 2n where n is the number of addresses on the system.
+    import netifaces
     self.ensure_authenticated()
     for interface in netifaces.interfaces():
       addresses = netifaces.ifaddresses(interface)
